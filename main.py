@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
@@ -32,4 +32,4 @@ def get_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
             return task
-    return {"error": "Task not found"}
+    raise HTTPException(status_code=404, detail="Task not found")
