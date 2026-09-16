@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import sqlite3
 
@@ -49,6 +50,11 @@ def init_db():
 
 init_db()
 
+def get_db_connection():
+    conn = sqlite3.connect("tasks.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
 @app.get("/", summary="Get API information")
 def root():
     return {
@@ -65,14 +71,41 @@ def health():
 
 @app.get("/tasks", summary="Get all tasks")
 def get_tasks():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM tasks").fetchall()
+    conn.close()
+
+    tasks = [
+        {
+            "id": row["id"],
+            "title": row["title"],
+            "done": bool(row["done"])
+        }
+        for row in rows
+    ]
+
     return tasks
 
-@app.get("/tasks/{task_id}", summary="Get a specific task")
+@app.get("/tasks/{task_id}", summary="Get a task by ID")
 def get_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-    raise HTTPException(status_code=404, detail="Task not found")
+    conn = get_db_connection()
+    row = conn.execute(
+        "SELECT * FROM tasks WHERE id = ?",
+        (task_id,)
+    ).fetchone()
+    conn.close()
+
+    if row is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Task not found"}
+        )
+
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "done": bool(row["done"])
+    }
 
 @app.post("/tasks", status_code=201, summary="Create a new task")
 def create_task(task: TaskCreate):
