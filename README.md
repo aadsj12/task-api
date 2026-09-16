@@ -113,3 +113,25 @@ The API uses the following HTTP status codes:
 ## Notes
 
 Tasks are stored in memory rather than in a database. This means that any tasks created, updated, or deleted while the API is running will reset when the server is restarted.
+
+## Exploring the Database with SQL
+
+I used DB Browser for SQLite to inspect and modify the task database directly.
+
+Example query:
+
+```sql
+SELECT * FROM tasks WHERE done = 1;
+```
+
+One formatting note: because that contains a code block inside what I'm showing you, make sure the final README visually looks like:
+
+**Exploring the Database with SQL**
+
+I used DB Browser for SQLite to inspect and modify the task database directly.
+
+**Example query:** `SELECT * FROM tasks WHERE done = 1;`
+
+This query returns all tasks that have been marked as completed.
+
+Save `README.md` and tell me **done**. Then we'll commit **Stage 4: explored SQLite** and move to the final Stage 5.
