@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from database import init_db
 from pydantic import BaseModel
 import sqlite3
 
 app = FastAPI()
+init_db()
 
 class TaskCreate(BaseModel):
     title: str | None = None
