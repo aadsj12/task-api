@@ -171,3 +171,21 @@ SELECT * FROM tasks WHERE done = 1;
 ```
 
 This query returns all tasks that have been marked as completed.
+
+## PostgreSQL with Docker
+
+For this stage, PostgreSQL runs inside a Docker container.
+
+Start the PostgreSQL container with:
+
+```bash
+docker run --name task-postgres \
+  -e POSTGRES_USER=taskuser \
+  -e POSTGRES_PASSWORD=taskpass \
+  -e POSTGRES_DB=taskdb \
+  -p 5432:5432 \
+  -v taskdata:/var/lib/postgresql/data \
+  -d postgres:16
+```
+
+The container creates a PostgreSQL database named `taskdb`. The `tasks` table contains the same task data used by the API in the previous SQLite stage.
