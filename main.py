@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from database import init_db, get_connection
 from pydantic import BaseModel
-import sqlite3
+'''import sqlite3'''
 
 app = FastAPI()
 init_db()
@@ -14,11 +14,11 @@ class TaskUpdate(BaseModel):
     title: str | None = None
     done: bool | None = None
 
-tasks = [
+'''tasks = [
     {"id": 1, "title": "Buy groceries", "done": False},
     {"id": 2, "title": "Finish assignment", "done": False},
     {"id": 3, "title": "Go to the gym", "done": True}
-]
+
 
 def init_db():
     conn = sqlite3.connect("tasks.db")
@@ -56,6 +56,7 @@ def get_db_connection():
     conn = sqlite3.connect("tasks.db")
     conn.row_factory = sqlite3.Row
     return conn
+    '''
 
 @app.get("/", summary="Get API information")
 def root():
@@ -106,18 +107,13 @@ def create_task(task: TaskCreate):
             content={"error": "Title cannot be empty"}
         )
 
-    conn = get_db_connection()
-
-    cursor = conn.execute(
-        "INSERT INTO tasks (title, done) VALUES (?, ?)",
-        (task.title, 0)
-    )
-
-    conn.commit()
-
-    new_task_id = cursor.lastrowid
-
-    conn.close()
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO tasks (title, done) VALUES (%s, %s) RETURNING id",
+                (task.title, False)
+            )
+            new_task_id = cursor.fetchone()["id"]
 
     return {
         "id": new_task_id,
@@ -127,53 +123,48 @@ def create_task(task: TaskCreate):
 
 @app.put("/tasks/{task_id}", summary="Update a task")
 def update_task(task_id: int, updated_task: TaskUpdate):
-    conn = get_db_connection()
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM tasks WHERE id = %s",
+                (task_id,)
+            )
+            row = cursor.fetchone()
 
-    row = conn.execute(
-        "SELECT * FROM tasks WHERE id = ?",
-        (task_id,)
-    ).fetchone()
+            if row is None:
+                return JSONResponse(
+                    status_code=404,
+                    content={"error": "Task not found"}
+                )
 
-    if row is None:
-        conn.close()
-        return JSONResponse(
-            status_code=404,
-            content={"error": "Task not found"}
-        )
+            if updated_task.title is None and updated_task.done is None:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "No fields to update"}
+                )
 
-    if updated_task.title is None and updated_task.done is None:
-        conn.close()
-        return JSONResponse(
-            status_code=400,
-            content={"error": "No fields to update"}
-        )
+            if updated_task.title is not None and not updated_task.title.strip():
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "Title cannot be empty"}
+                )
 
-    if updated_task.title is not None and not updated_task.title.strip():
-        conn.close()
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Title cannot be empty"}
-        )
+            new_title = (
+                updated_task.title
+                if updated_task.title is not None
+                else row["title"]
+            )
 
-    new_title = (
-        updated_task.title
-        if updated_task.title is not None
-        else row["title"]
-    )
+            new_done = (
+                updated_task.done
+                if updated_task.done is not None
+                else row["done"]
+            )
 
-    new_done = (
-        updated_task.done
-        if updated_task.done is not None
-        else bool(row["done"])
-    )
-
-    conn.execute(
-        "UPDATE tasks SET title = ?, done = ? WHERE id = ?",
-        (new_title, int(new_done), task_id)
-    )
-
-    conn.commit()
-    conn.close()
+            cursor.execute(
+                "UPDATE tasks SET title = %s, done = %s WHERE id = %s",
+                (new_title, new_done, task_id)
+            )
 
     return {
         "id": task_id,
@@ -183,26 +174,23 @@ def update_task(task_id: int, updated_task: TaskUpdate):
 
 @app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task")
 def delete_task(task_id: int):
-    conn = get_db_connection()
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM tasks WHERE id = %s",
+                (task_id,)
+            )
+            row = cursor.fetchone()
 
-    row = conn.execute(
-        "SELECT * FROM tasks WHERE id = ?",
-        (task_id,)
-    ).fetchone()
+            if row is None:
+                return JSONResponse(
+                    status_code=404,
+                    content={"error": "Task not found"}
+                )
 
-    if row is None:
-        conn.close()
-        return JSONResponse(
-            status_code=404,
-            content={"error": "Task not found"}
-        )
-
-    conn.execute(
-        "DELETE FROM tasks WHERE id = ?",
-        (task_id,)
-    )
-
-    conn.commit()
-    conn.close()
+            cursor.execute(
+                "DELETE FROM tasks WHERE id = %s",
+                (task_id,)
+            )
 
     return
