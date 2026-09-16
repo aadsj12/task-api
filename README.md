@@ -189,3 +189,53 @@ docker run --name task-postgres \
 ```
 
 The container creates a PostgreSQL database named `taskdb`. The `tasks` table contains the same task data used by the API in the previous SQLite stage.
+
+## Docker and PostgreSQL
+
+The API has been migrated from SQLite to PostgreSQL and containerized using Docker. Docker Compose runs both the FastAPI application and PostgreSQL database together.
+
+### Run with Docker Compose
+
+Make sure Docker Desktop is running, then start the complete stack with:
+
+```bash
+docker compose up --build
+```
+
+The API will be available at:
+
+`http://localhost:8000`
+
+Swagger documentation is available at:
+
+`http://localhost:8000/docs`
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
+### Services
+
+The Docker Compose configuration contains two services:
+
+- `api` — the FastAPI application
+- `db` — the PostgreSQL database
+
+The API connects to PostgreSQL using the `DATABASE_URL` environment variable.
+
+### Database Persistence
+
+PostgreSQL data is stored in a named Docker volume. This means task data persists when the containers are stopped and restarted with:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+### Environment Variables
+
+Database configuration is provided through environment variables. An `.env.example` file is included as a template.
+
+The real `.env` file is excluded from Git so database credentials are not committed to the repository.
