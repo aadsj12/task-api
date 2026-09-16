@@ -1,0 +1,115 @@
+# Task API
+
+A simple REST API for managing a to-do list, built with Python and FastAPI.
+
+## Features
+
+The API supports CRUD operations for tasks:
+
+- Create a new task
+- Read all tasks
+- Read a specific task
+- Update an existing task
+- Delete a task
+
+## Installation and Running
+
+Create and activate a virtual environment:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Install the required packages:
+
+```bash
+pip install fastapi uvicorn
+```
+
+Run the API:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at:
+
+`http://127.0.0.1:8000`
+
+Swagger documentation is available at:
+
+`http://127.0.0.1:8000/docs`
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | Get API information |
+| GET | `/health` | Check API health |
+| GET | `/tasks` | Get all tasks |
+| GET | `/tasks/{task_id}` | Get a specific task |
+| POST | `/tasks` | Create a new task |
+| PUT | `/tasks/{task_id}` | Update an existing task |
+| DELETE | `/tasks/{task_id}` | Delete a task |
+
+## Example
+
+Create a new task using `curl`:
+
+```bash
+curl -i -X POST http://127.0.0.1:8000/tasks \
+-H "Content-Type: application/json" \
+-d '{"title":"Buy milk"}'
+```
+
+Example response:
+
+```text
+HTTP/1.1 201 Created
+date: Wed, 16 Sep 2026 00:16:01 GMT
+server: uvicorn
+content-length: 40
+content-type: application/json
+
+{"id":4,"title":"Buy milk","done":false}%   
+```
+
+## Swagger UI
+
+FastAPI automatically generates interactive API documentation using Swagger UI.
+
+To access it while the server is running, open:
+
+`http://127.0.0.1:8000/docs`
+
+The Swagger UI can be used to test the full CRUD cycle directly from the browser.
+
+### Swagger Screenshot
+
+![Swagger UI](images/swagger-ui.png)
+
+## Status Codes
+
+The API uses the following HTTP status codes:
+
+| Status Code | Meaning |
+|---|---|
+| `200 OK` | A task was successfully read or updated |
+| `201 Created` | A new task was successfully created |
+| `204 No Content` | A task was successfully deleted |
+| `400 Bad Request` | Invalid task data was provided |
+| `404 Not Found` | The requested task ID does not exist |
+
+## Technologies Used
+
+- Python
+- FastAPI
+- Uvicorn
+- Pydantic
+- Swagger UI
+- Git and GitHub
+
+## Notes
+
+Tasks are stored in memory rather than in a database. This means that any tasks created, updated, or deleted while the API is running will reset when the server is restarted.
