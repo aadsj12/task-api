@@ -6,7 +6,7 @@ import sqlite3
 app = FastAPI()
 
 class TaskCreate(BaseModel):
-    title: str
+    title: str | None = None
 
 class TaskUpdate(BaseModel):
     title: str | None = None
@@ -109,19 +109,30 @@ def get_task(task_id: int):
 
 @app.post("/tasks", status_code=201, summary="Create a new task")
 def create_task(task: TaskCreate):
-    if not task.title.strip():
-        raise HTTPException(status_code=400, detail="Title cannot be empty")
+    if task.title is None or not task.title.strip():
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Title cannot be empty"}
+        )
 
-    next_id = max(t["id"] for t in tasks) + 1
+    conn = get_db_connection()
 
-    new_task = {
-        "id": next_id,
+    cursor = conn.execute(
+        "INSERT INTO tasks (title, done) VALUES (?, ?)",
+        (task.title, 0)
+    )
+
+    conn.commit()
+
+    new_task_id = cursor.lastrowid
+
+    conn.close()
+
+    return {
+        "id": new_task_id,
         "title": task.title,
         "done": False
     }
-
-    tasks.append(new_task)
-    return new_task
 
 @app.put("/tasks/{task_id}", summary="Update a task")
 def update_task(task_id: int, updated_task: TaskUpdate):
