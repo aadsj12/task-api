@@ -135,3 +135,39 @@ I used DB Browser for SQLite to inspect and modify the task database directly.
 This query returns all tasks that have been marked as completed.
 
 Save `README.md` and tell me **done**. Then we'll commit **Stage 4: explored SQLite** and move to the final Stage 5.
+
+## SQLite Database
+
+This API uses SQLite for persistent data storage. SQLite was chosen because it is lightweight, requires no separate database server or setup, and stores the database in a single file while allowing task data to survive application restarts.
+
+The database is stored locally as `tasks.db` in the project root. The file is automatically created when the application starts if it does not already exist. It is excluded from Git using `.gitignore`, allowing a fresh database to be created when the repository is cloned.
+
+On first startup, the application automatically creates the `tasks` table and seeds it with three example tasks if the table is empty.
+
+### Start the API
+
+Activate the virtual environment:
+
+```bash
+source venv/bin/activate
+```
+
+Start the server:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at `http://127.0.0.1:8000`.
+
+### Database Preview
+
+![SQLite tasks database](images/sqlite-database.png)
+
+### Example SQL Query
+
+```sql
+SELECT * FROM tasks WHERE done = 1;
+```
+
+This query returns all tasks that have been marked as completed.
