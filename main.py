@@ -24,6 +24,10 @@ class TaskUpdate(BaseModel):
     title: str | None = None
     done: bool | None = None
 
+class UserAuth(BaseModel):
+    email: str
+    password: str
+
 '''tasks = [
     {"id": 1, "title": "Buy groceries", "done": False},
     {"id": 2, "title": "Finish assignment", "done": False},
@@ -81,6 +85,24 @@ def root():
 def health():
     return {"status": "ok"}
 
+@app.post("/auth/signup", status_code=201, summary="Sign up a new user")
+def signup(user: UserAuth):
+    try:
+        response = supabase.auth.sign_up({
+            "email": user.email,
+            "password": user.password
+        })
+
+        return {
+            "message": "User created successfully",
+            "user_id": response.user.id
+        }
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(e)}
+        )
 
 @app.get("/tasks", summary="Get all tasks")
 def get_tasks():
