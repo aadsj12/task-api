@@ -104,6 +104,25 @@ def signup(user: UserAuth):
             content={"error": str(e)}
         )
 
+@app.post("/auth/login", summary="Log in a user")
+def login(user: UserAuth):
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": user.email,
+            "password": user.password
+        })
+
+        return {
+            "access_token": response.session.access_token,
+            "token_type": "bearer"
+        }
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=401,
+            content={"error": str(e)}
+        )
+
 @app.get("/tasks", summary="Get all tasks")
 def get_tasks():
     with get_connection() as conn:
