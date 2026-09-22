@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
 from database import init_db, get_connection
 from pydantic import BaseModel
@@ -13,6 +14,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+security = HTTPBearer()
 
 app = FastAPI()
 init_db()
@@ -123,8 +126,22 @@ def login(user: UserAuth):
             content={"error": str(e)}
         )
 
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    token = credentials.credentials
+
+    try:
+        response = supabase.auth.get_user(token)
+        return response.user
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
 @app.get("/tasks", summary="Get all tasks")
-def get_tasks():
+def get_tasks(current_user = Depends(get_current_user)):
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM tasks ORDER BY id")
