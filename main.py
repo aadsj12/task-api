@@ -117,6 +117,7 @@ def login(user: UserAuth):
 
         return {
             "access_token": response.session.access_token,
+            "refresh_token": response.session.refresh_token,
             "token_type": "bearer"
         }
 
