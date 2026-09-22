@@ -140,6 +140,32 @@ def get_current_user(
             detail="Invalid or expired token"
         )
 
+@app.post("/auth/logout", status_code=204, summary="Log out a user")
+def logout(current_user = Depends(get_current_user)):
+    supabase.auth.sign_out()
+    return
+    
+@app.get("/public/info", summary="Get public information")
+def public_info():
+    return {
+        "message": "Welcome stranger! This info is public."
+    }
+
+@app.get("/protected/profile", summary="Get authenticated user profile")
+def protected_profile(current_user = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "created_at": current_user.created_at
+    }
+
+@app.get("/protected/dashboard", summary="Get protected dashboard")
+def protected_dashboard(current_user = Depends(get_current_user)):
+    return {
+        "message": "Welcome to your protected dashboard",
+        "user_id": current_user.id
+    }
+
 @app.get("/tasks", summary="Get all tasks")
 def get_tasks(current_user = Depends(get_current_user)):
     with get_connection() as conn:
