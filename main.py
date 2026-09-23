@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from src.llm.schemas import IntentExtractResponse
 from fastapi.responses import JSONResponse
 from database import init_db, get_connection
 from pydantic import BaseModel, Field
 from typing import Literal
-from src.llm.client import extract_intent_with_llm
+from src.llm.client import extract_intent_with_llm, LLMValidationError
 '''import sqlite3'''
 import os
 from dotenv import load_dotenv
@@ -37,20 +38,7 @@ class IntentExtractRequest(BaseModel):
     text: str
 
 
-class IntentExtractResponse(BaseModel):
-    action: str
-    subject: str
-    category: Literal[
-        "engineering",
-        "research",
-        "writing",
-        "admin",
-        "personal",
-        "other"
-    ]
-    urgency: Literal["low", "normal", "high"]
-    confidence: float = Field(ge=0.0, le=1.0)
-    needs_review: bool
+
 
 '''tasks = [
     {"id": 1, "title": "Buy groceries", "done": False},
@@ -338,4 +326,11 @@ def extract_intent(request: IntentExtractRequest):
             needs_review=False
         )
 
-    return extract_intent_with_llm(request.text)
+    try:
+        return extract_intent_with_llm(request.text)
+
+    except LLMValidationError:
+        raise HTTPException(
+            status_code=422,
+            detail="LLM output could not be validated after one repair attempt",
+        )
