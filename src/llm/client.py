@@ -1,3 +1,4 @@
+import json
 import os
 
 from dotenv import load_dotenv
@@ -16,7 +17,7 @@ client = OpenAI(
 )
 
 
-def extract_intent_with_llm(task_text: str) -> str:
+def extract_intent_with_llm(task_text: str) -> dict:
     system_prompt = load_prompt()
 
     response = client.chat.completions.create(
@@ -34,4 +35,9 @@ def extract_intent_with_llm(task_text: str) -> str:
         temperature=0.1,
     )
 
-    return response.choices[0].message.content
+    raw_output = response.choices[0].message.content
+
+    if raw_output is None:
+        raise ValueError("LLM returned an empty response")
+
+    return json.loads(raw_output)
