@@ -21,6 +21,7 @@ services:
       DATABASE_URL: postgresql://taskuser:taskpass@db:5432/taskdb
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_KEY: ${SUPABASE_KEY}
+      LLM_STUB: ${LLM_STUB}
     depends_on:
       db:
         condition: service_healthy

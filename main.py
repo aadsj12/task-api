@@ -2,7 +2,8 @@ from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
 from database import init_db, get_connection
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 '''import sqlite3'''
 import os
 from dotenv import load_dotenv
@@ -30,6 +31,25 @@ class TaskUpdate(BaseModel):
 class UserAuth(BaseModel):
     email: str
     password: str
+
+class IntentExtractRequest(BaseModel):
+    text: str
+
+
+class IntentExtractResponse(BaseModel):
+    action: str
+    subject: str
+    category: Literal[
+        "engineering",
+        "research",
+        "writing",
+        "admin",
+        "personal",
+        "other"
+    ]
+    urgency: Literal["low", "normal", "high"]
+    confidence: float = Field(ge=0.0, le=1.0)
+    needs_review: bool
 
 '''tasks = [
     {"id": 1, "title": "Buy groceries", "done": False},
@@ -289,3 +309,35 @@ def delete_task(task_id: int):
             )
 
     return
+
+@app.post(
+    "/extract",
+    response_model=IntentExtractResponse,
+    summary="Extract structured intent from a task description"
+)
+def extract_intent(request: IntentExtractRequest):
+    if not request.text.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Text cannot be empty"
+        )
+
+    if len(request.text) > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail="Text cannot exceed 2000 characters"
+        )
+    if os.getenv("LLM_STUB", "0") == "1":
+        return IntentExtractResponse(
+            action="complete",
+            subject="example task",
+            category="other",
+            urgency="normal",
+            confidence=1.0,
+            needs_review=False
+        )
+
+    raise HTTPException(
+        status_code=503,
+        detail="LLM integration is not enabled yet"
+    )
