@@ -1,0 +1,82 @@
+[
+  {
+    "input": "Fix the login bug before tomorrow's release",
+    "expected": {
+      "action": "fix",
+      "subject": "login bug",
+      "category": "engineering",
+      "urgency": "high",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Research competitor pricing before Friday",
+    "expected": {
+      "action": "research",
+      "subject": "competitor pricing",
+      "category": "research",
+      "urgency": "high",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Write the introduction for the quarterly report",
+    "expected": {
+      "action": "write",
+      "subject": "quarterly report introduction",
+      "category": "writing",
+      "urgency": "normal",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Schedule the team meeting for next week",
+    "expected": {
+      "action": "schedule",
+      "subject": "team meeting",
+      "category": "admin",
+      "urgency": "normal",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Buy groceries sometime this weekend",
+    "expected": {
+      "action": "buy",
+      "subject": "groceries",
+      "category": "personal",
+      "urgency": "normal",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Investigate the production API outage immediately",
+    "expected": {
+      "action": "investigate",
+      "subject": "production API outage",
+      "category": "engineering",
+      "urgency": "high",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Review the documentation when you have time",
+    "expected": {
+      "action": "review",
+      "subject": "documentation",
+      "category": "writing",
+      "urgency": "low",
+      "needs_review": false
+    }
+  },
+  {
+    "input": "Sort out that thing we discussed",
+    "expected": {
+      "action": "sort out",
+      "subject": "that thing we discussed",
+      "category": "other",
+      "urgency": "normal",
+      "needs_review": true
+    }
+  }
+]

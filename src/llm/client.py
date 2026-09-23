@@ -8,14 +8,13 @@ from dotenv import load_dotenv
 from openai import OpenAI, APITimeoutError, APIStatusError, RateLimitError
 from pydantic import ValidationError
 
-from src.llm.prompt import load_prompt
+from src.llm.prompt import load_prompt, PROMPT_VERSION
 from src.llm.schemas import IntentExtractResponse
 
 
 load_dotenv()
 
 MODEL_NAME = "openrouter/free"
-PROMPT_VERSION = "intent-extraction-v1"
 
 
 client = OpenAI(
@@ -123,8 +122,7 @@ def log_llm_call(
     }
 
     print(
-        "LLM_METRICS "
-        + json.dumps(log_record),
+        "LLM_METRICS " + json.dumps(log_record),
         flush=True,
     )
 
@@ -186,7 +184,13 @@ def extract_intent_with_llm(task_text: str) -> dict:
                     "content": (
                         "Your previous response was invalid. "
                         "Repair it so it follows the required JSON schema exactly. "
-                        "Return valid JSON only."
+                        "Return ONLY the raw JSON object. "
+                        "Do not use Markdown. "
+                        "Do not use ```json or ``` code fences. "
+                        "Do not include explanations, comments, or any text before "
+                        "or after the JSON object. "
+                        "The first character of your response must be { and the "
+                        "last character must be }."
                     ),
                 },
             ]
@@ -201,6 +205,7 @@ def extract_intent_with_llm(task_text: str) -> dict:
 
         try:
             repaired_json = json.loads(repaired_output)
+
             validated_repair = IntentExtractResponse.model_validate(
                 repaired_json
             )

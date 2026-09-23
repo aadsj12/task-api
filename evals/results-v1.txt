@@ -1,0 +1,23 @@
+Prompt version: intent-extraction-v1
+Evaluation date: 2026-09-23
+Cases: 8
+
+Case 1: PASS
+Case 2: PASS
+Case 3: FAIL
+Case 4: PASS
+Case 5: FAIL
+Case 6: PASS
+Case 7: FAIL
+Case 8: FAIL
+
+Result: 4/8 passed (50.0%)
+
+Failure notes:
+- Case 3: Semantically correct subject, but exact wording differed.
+- Case 5: Model classified "sometime this weekend" as low urgency instead of normal.
+- Case 7: Model classified documentation review as admin instead of writing.
+- Case 8: Correct uncertainty behaviour (other, low confidence, needs_review=true), but action and subject wording differed from the exact labels.
+
+What I'd fix:
+Improve the evaluation rubric so semantically equivalent free-text action/subject wording does not automatically fail, while continuing to score closed fields such as category, urgency and needs_review strictly.

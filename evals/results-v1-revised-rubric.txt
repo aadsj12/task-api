@@ -1,0 +1,28 @@
+Prompt version: intent-extraction-v1
+Evaluation date: 2026-09-23
+Cases: 8
+
+Evaluation rubric:
+- category: exact match
+- urgency: exact match
+- needs_review: exact match
+- ambiguous cases requiring review: confidence must be below 0.5
+- action and subject are inspected manually because semantically equivalent wording may differ
+
+Case 1: PASS
+Case 2: PASS
+Case 3: PASS
+Case 4: PASS
+Case 5: FAIL
+Case 6: PASS
+Case 7: FAIL
+Case 8: PASS
+
+Result: 6/8 passed (75.0%)
+
+Remaining failures:
+- Case 5: expected urgency=normal; model returned urgency=low.
+- Case 7: expected category=writing; model returned category=other.
+
+What I'd fix:
+Clarify the prompt's category and urgency rules, especially how flexible deadlines such as "sometime this weekend" should be classified and how documentation-related work maps to the writing category.

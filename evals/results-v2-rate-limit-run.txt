@@ -1,0 +1,49 @@
+Case 1: PASS
+  Input:    Fix the login bug before tomorrow's release
+  Action:   fix
+  Subject:  login bug
+  Category: engineering
+  Urgency:  high
+  Review:   False
+  Confidence: 0.95
+
+Case 2: PASS
+  Input:    Research competitor pricing before Friday
+  Action:   research
+  Subject:  competitor pricing
+  Category: research
+  Urgency:  high
+  Review:   False
+  Confidence: 0.96
+
+Case 3: PASS
+  Input:    Write the introduction for the quarterly report
+  Action:   write
+  Subject:  introduction for quarterly report
+  Category: writing
+  Urgency:  normal
+  Review:   False
+  Confidence: 0.95
+
+Case 4: PASS
+  Input:    Schedule the team meeting for next week
+  Action:   schedule
+  Subject:  team meeting
+  Category: admin
+  Urgency:  normal
+  Review:   False
+  Confidence: 0.95
+
+Case 5: PASS
+  Input:    Buy groceries sometime this weekend
+  Action:   buy
+  Subject:  groceries
+  Category: personal
+  Urgency:  normal
+  Review:   False
+  Confidence: 0.9
+
+Case 6: FAIL — HTTP 500
+Case 7: FAIL — HTTP 500
+Case 8: FAIL — HTTP 500
+Result: 5/8 passed (62.5%)

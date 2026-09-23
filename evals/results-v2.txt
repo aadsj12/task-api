@@ -1,0 +1,32 @@
+Prompt version: intent-extraction-v2
+Evaluation date: 2026-09-23
+Cases: 8
+
+Evaluation rubric:
+- category: exact match
+- urgency: exact match
+- needs_review: exact match
+- ambiguous cases requiring review: confidence must be below 0.5
+- action and subject are inspected manually because semantically equivalent wording may differ
+
+Case 1: PASS
+Case 2: PASS
+Case 3: PASS
+Case 4: PASS
+Case 5: PASS
+Case 6: PASS
+Case 7: PASS
+Case 8: PASS
+
+Result: 8/8 passed (100.0%)
+
+What improved from v1:
+Prompt v2 clarified category boundaries and urgency rules. In particular,
+documentation-related work is classified as writing, flexible upcoming
+deadlines such as "this weekend" are classified as normal urgency, and
+ambiguous tasks use the review fallback.
+
+What I'd fix next:
+Improve resilience to provider quota exhaustion by translating unrecoverable
+provider errors such as exhausted 429 rate limits into a controlled API error
+instead of allowing them to surface as HTTP 500 responses.
