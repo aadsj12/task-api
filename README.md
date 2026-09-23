@@ -181,3 +181,165 @@ Passwords are never stored by this API. User credentials are handled by Supabase
 Supabase access tokens are verified before protected endpoints are executed.
 
 The `.env` file is excluded from Git, and `.env.example` contains only placeholder values.
+
+---
+
+## LLM-Powered Task Intent Extraction
+
+The API includes an LLM-powered endpoint that converts an unstructured task description into predictable, validated structured data.
+
+The feature is designed as a single-decision workflow rather than a chatbot: one task description goes in, one structured result comes out, with no conversational memory.
+
+### Endpoint
+
+`POST /extract`
+
+Example request:
+
+```bash
+curl -X POST http://localhost:8000/extract \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Fix the login bug before tomorrow'\''s release"}'
+```
+
+Example response:
+
+```json
+{
+  "action": "fix",
+  "subject": "login bug",
+  "category": "engineering",
+  "urgency": "high",
+  "confidence": 0.95,
+  "needs_review": false
+}
+```
+
+The output is parsed and validated with Pydantic before it is returned by the API.
+
+### Output Schema
+
+The endpoint returns:
+
+| Field | Description |
+|---|---|
+| `action` | Short description of the action to perform |
+| `subject` | The object or topic of the task |
+| `category` | `engineering`, `research`, `writing`, `admin`, `personal`, or `other` |
+| `urgency` | `low`, `normal`, or `high` |
+| `confidence` | Confidence value between `0.0` and `1.0` |
+| `needs_review` | Whether the result requires human review |
+
+When the task cannot be classified reliably, the model is instructed to use `other`, lower its confidence below `0.5`, and set `needs_review` to `true`.
+
+The full input/output contract and classification rules are documented in [`JOB-CARD.md`](JOB-CARD.md).
+
+### Provider and Prompt
+
+The integration uses OpenRouter through the OpenAI Python SDK.
+
+Current model route:
+
+```text
+openrouter/free
+```
+
+The prompt is stored separately from the application code and versioned in the `prompts/` directory.
+
+Current prompt version:
+
+```text
+intent-extraction-v2
+```
+
+The user's task text is sent as a separate user message rather than being inserted into the system prompt.
+
+### Reliability Guardrails
+
+The LLM is treated as an unreliable external dependency. The integration includes:
+
+- Pydantic schema validation
+- JSON parsing before returning output
+- one repair attempt for malformed or schema-invalid responses
+- quarantine logging if the repaired response still fails validation
+- a 30-second timeout
+- retries for timeouts, HTTP 429 responses, and 5xx errors
+- no retries for non-recoverable 400, 401, or 403 errors
+- exponential backoff with jitter
+- token, latency, prompt-version, and repair-count logging
+- an `LLM_ENABLED` kill switch
+- an `LLM_STUB` mode for testing without a model call
+
+Raw model text is never returned directly to the API client.
+
+### LLM Environment Variables
+
+The LLM integration uses:
+
+```env
+OPENROUTER_API_KEY=your_openrouter_api_key
+LLM_ENABLED=true
+LLM_STUB=0
+```
+
+`.env.example` contains placeholder configuration. The real `.env` file is excluded from Git and must not be committed.
+
+### Evaluation
+
+The endpoint was evaluated against eight hand-labelled task descriptions covering engineering, research, writing, administration, personal tasks, different urgency levels, and ambiguous input.
+
+**Evaluation date:** 2026-09-23  
+**Prompt version:** `intent-extraction-v2`  
+**Result:** **8/8 passed (100%)**
+
+The evaluation uses exact matching for the closed classification fields:
+
+- `category`
+- `urgency`
+- `needs_review`
+
+For ambiguous cases requiring review, confidence must also be below `0.5`.
+
+`action` and `subject` are inspected manually because semantically equivalent wording may differ while still representing the correct task intent.
+
+The evaluation cases, runner, and recorded results are stored in [`evals/`](evals/).
+
+Prompt v1 scored **6/8 (75%)** under the revised evaluation rubric. The remaining errors involved a flexible weekend deadline and documentation-related work. Prompt v2 clarified the category boundaries and urgency rules, resulting in the recorded **8/8** evaluation run.
+
+### Operational Logging and Cost
+
+Each successful LLM request records:
+
+- prompt version
+- model
+- prompt tokens
+- completion tokens
+- total tokens
+- duration
+- repair count
+- estimated cost
+
+Example recorded log:
+
+```json
+{
+  "prompt_version": "intent-extraction-v1",
+  "model": "openrouter/free",
+  "prompt_tokens": 450,
+  "completion_tokens": 648,
+  "total_tokens": 1098,
+  "duration_seconds": 7.592,
+  "repair_count": 0,
+  "estimated_cost_usd": 0.0
+}
+```
+
+The OpenRouter free model route is treated as **$0.00** for the assignment cost estimate. A production deployment would calculate estimated cost using the pricing of the specific model selected.
+
+### What I'd Fix Next
+
+The next improvement would be more graceful handling of provider quota exhaustion.
+
+During evaluation, the OpenRouter free-tier daily request limit was reached. The client correctly retried the HTTP 429 response according to the retry policy, but once the daily quota was exhausted, the request could not recover and eventually surfaced as an HTTP 500 response.
+
+A production version should translate an exhausted provider rate limit into a controlled API response while retaining retries for transient 429 errors.
