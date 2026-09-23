@@ -23,6 +23,7 @@ services:
       SUPABASE_KEY: ${SUPABASE_KEY}
       LLM_STUB: ${LLM_STUB}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      LLM_ENABLED: ${LLM_ENABLED}
     depends_on:
       db:
         condition: service_healthy

@@ -316,6 +316,13 @@ def extract_intent(request: IntentExtractRequest):
             status_code=400,
             detail="Text cannot exceed 2000 characters"
         )
+
+    if os.getenv("LLM_ENABLED", "true").lower() != "true":
+        raise HTTPException(
+            status_code=503,
+            detail="LLM functionality is currently disabled",
+        )
+    
     if os.getenv("LLM_STUB", "0") == "1":
         return IntentExtractResponse(
             action="complete",
