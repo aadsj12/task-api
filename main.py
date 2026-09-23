@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from database import init_db, get_connection
 from pydantic import BaseModel, Field
 from typing import Literal
+from src.llm.client import extract_intent_with_llm
 '''import sqlite3'''
 import os
 from dotenv import load_dotenv
@@ -337,7 +338,4 @@ def extract_intent(request: IntentExtractRequest):
             needs_review=False
         )
 
-    raise HTTPException(
-        status_code=503,
-        detail="LLM integration is not enabled yet"
-    )
+    return extract_intent_with_llm(request.text)
